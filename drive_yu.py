@@ -148,10 +148,12 @@ def disconnect(sid):
 app = socketio.Middleware(sio, app)
 # Connect to Socket.IO client
 if __name__ == "__main__":
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     # 定义模型
     model = resnet_model()
     # 导入权重
-    model.load_state_dict(torch.load("model_weights/resnet/dataset4.pth", map_location='cuda:0' if torch.cuda.is_available() else 'cpu'))
+    model = torch.load('weights/resnet/349.pt', map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
     model.eval()
 
     # get local ip address
