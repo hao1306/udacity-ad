@@ -88,6 +88,12 @@ def preprocess(image):
     image = cv2.GaussianBlur(image, (3, 3), 0)
     return image
 
+def preprocess_drive(image):
+    image = crop(image)
+    image = resize(image)
+    image = rgb2yuv(image)
+    return image
+
 """
 * @brief Function to randomly choose the center, left and right images 
 * to adjust the steering angles.
