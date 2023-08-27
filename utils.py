@@ -20,6 +20,25 @@ INPUT_SHAPE = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 * @param File path of the images
 * @return The image file
 """
+
+class LetterBox:
+    # YOLOv5 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    def __init__(self, size=(224, 224), auto=False, stride=32):
+        super().__init__()
+        self.h, self.w = (size, size) if isinstance(size, int) else size
+        self.auto = auto  # pass max size integer, automatically solve for short side using stride
+        self.stride = stride  # used with auto
+
+    def __call__(self, im):  # im = np.array HWC
+        imh, imw = im.shape[:2]
+        r = min(self.h / imh, self.w / imw)  # ratio of new/old
+        h, w = round(imh * r), round(imw * r)  # resized image
+        hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else self.h, self.w
+        top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
+        im_out = np.full((self.h, self.w, 3), 114, dtype=im.dtype)
+        im_out[top:top + h, left:left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        return im_out
+
 def load_image(data_dir, image_file):
     """
     Load RGB images from a file
@@ -31,11 +50,13 @@ def load_image(data_dir, image_file):
 * @param The image to crop
 * @return The cropped image
 """
+
+
 def crop(image):
    
    # Crop the image (removing the sky at the top and the car front at the bottom)
     
-    return image[20:-20, 150:-150, :]  # remove the sky and the car front
+    return image[20:-20, 90:-90, :]  # remove the sky and the car front
 
 """
 * @brief Resize the image to the input shape used by the network model
@@ -43,7 +64,9 @@ def crop(image):
 * @return The Resized image for the network
 """ 
 def resize(image):
-    return cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
+    letterbox = LetterBox(size=(224, 224))
+    output = letterbox(image)
+    return output
 
 """
 * @brief Fuinction to convert the color space of the image from RGB to YUV.
